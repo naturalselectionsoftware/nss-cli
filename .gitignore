@@ -1,0 +1,11 @@
+# Local binaries and release artifacts
+/nss
+/dist/
+/coverage.out
+*.test
+
+# Local credentials and machine files
+.env
+.env.*
+!.env.example
+.DS_Store

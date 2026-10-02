@@ -1,0 +1,70 @@
+version: 2
+project_name: nss
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: nss
+    main: .
+    binary: nss
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - arm64
+      - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - id: nss
+    ids:
+      - nss
+    formats:
+      - tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+  algorithm: sha256
+
+homebrew_casks:
+  - name: nss
+    ids:
+      - nss
+    binaries:
+      - nss
+    directory: Casks
+    homepage: https://github.com/naturalselectionsoftware/nss-cli
+    description: Command-line client for NSS operational event APIs
+    skip_upload: auto
+    repository:
+      owner: naturalselectionsoftware
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    custom_block: |
+      on_macos do
+        postflight_steps do
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/nss"]
+        end
+      end
+
+release:
+  github:
+    owner: naturalselectionsoftware
+    name: nss-cli
+  prerelease: auto
+
+changelog:
+  use: git
